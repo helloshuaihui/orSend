@@ -7,6 +7,6 @@ using namespace std;
 
 int main()
 {
-	cout << "Hello CMake." << endl;
+	TCP::TcpSocketClass test;
 	return 0;
 }
