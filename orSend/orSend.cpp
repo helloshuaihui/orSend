@@ -8,5 +8,7 @@ using namespace std;
 int main()
 {
 	TCP::TcpSocketClass test;
+	SOCKET aaa = test.creatTcpScoketserver("0.0.0.0",6002);
+	test.PrintSocketPool();
 	return 0;
 }
