@@ -36,7 +36,7 @@ namespace TCP {
 				}
 				else {
 					std::cout << "socket创建成功" << std::endl;
-					SocketPool.push_back(InitTCPSOCKINFO(ip, port, NewSocket));
+					SocketPool.push_back(InitTCPSOCKINFO(ip, port, NewSocket, SocketType::server));
 				}
 			}
 			return NewSocket;
@@ -64,7 +64,17 @@ namespace TCP {
 				}
 				else {
 					std::cout << "连接服务器成功"<< std::endl;
-					SocketPool.push_back(InitTCPSOCKINFO(ip, port, NewSocket));
+					//获取端口
+					int LocalPort = -1;
+					sockaddr_in localAddr{};
+					int addrLen = sizeof(localAddr);
+					if (getsockname(NewSocket, (SOCKADDR*)&localAddr, &addrLen) == SOCKET_ERROR) {
+						std::cout << "获取端口失败" << std::endl;
+					}
+					else {
+						LocalPort = ntohs(localAddr.sin_port);
+					}
+					SocketPool.push_back(InitTCPSOCKINFO(ip, LocalPort, NewSocket,SocketType::client));
 				}
 			}
 			return NewSocket;
@@ -106,7 +116,7 @@ namespace TCP {
 		ss << std::put_time(&localTime, "%Y-%m-%d %H:%M:%S");
 		return ss.str();
 	}
-	TcpSocketInfo TcpSocketClass::InitTCPSOCKINFO(std::string ip, int port, TCPSOCK sock)
+	TcpSocketInfo TcpSocketClass::InitTCPSOCKINFO(std::string ip, int port, TCPSOCK sock,int type)
 	{
 		TcpSocketInfo info;
 
@@ -123,17 +133,20 @@ namespace TCP {
 		// 4. 初始化连接状态（默认设为true，代表刚建立连接）
 		info.connStatus = true;
 
+		//定义socket连接类型
+		info.type = type;
 		return info;
 	}
 	void TcpSocketClass::PrintSocketPool()
 	{
 		for (int i = 0;i < this->SocketPool.size();i++) {
-			std::cout 
+			std::cout
 				<< "socket:" << this->SocketPool[i].sockId << "\n"
-				<< "ip:" << this->SocketPool[i].ip <<"\n"
+				<< "ip:" << this->SocketPool[i].ip << "\n"
 				<< "port:" << this->SocketPool[i].port << "\n"
 				<< "statu:" << this->SocketPool[i].connStatus << "\n"
-				<< "conntime:" << this->SocketPool[i].connTime << "\n"
+				<< "ctime:" << this->SocketPool[i].connTime << "\n"
+				<< "type:" << ((this->SocketPool[i].type == 1) ? "server" : "client") << "\n"
 				<< std::endl;
 		}
 	}

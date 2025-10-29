@@ -14,8 +14,12 @@
 	using TCPSOCK = SOCKET;
 #endif // WIN32
 
-
 namespace TCP {
+	enum SocketType
+	{
+		server = 1,
+		client = 2
+	};
 	struct TcpSocketInfo
 	{
 		TCPSOCK sockId; //socket id
@@ -23,7 +27,7 @@ namespace TCP {
 		int port; //port
 		std::string connTime; //连接时间
 		bool connStatus; //当前状态 true and false
-		int type;
+		int type; //socket 类型
 	};
 	class TcpSocketClass
 	{
@@ -37,7 +41,7 @@ namespace TCP {
 		~TcpSocketClass();
 	private:	
 		std::string getCurrentTimeString();
-		TcpSocketInfo InitTCPSOCKINFO(std::string ip,int port, TCPSOCK sock);
+		TcpSocketInfo InitTCPSOCKINFO(std::string ip,int port, TCPSOCK sock,int type);
 		std::vector<TcpSocketInfo> SocketPool;
 		
 		#ifdef WIN32
