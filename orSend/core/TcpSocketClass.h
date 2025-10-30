@@ -37,13 +37,18 @@ namespace TCP {
 		TCPSOCK connTcpScokerServer(std::string ip, int port);
 		#endif // !WIN32
 		void PrintSocketPool();
+		std::string ErrorMsg; //错误信息
+		int ErrorCode; //错误代码
+		bool IsPrintError; //是否打印错误
+		void PrintError(); //错误打印函数
 		TcpSocketClass();
 		~TcpSocketClass();
 	private:	
 		std::string getCurrentTimeString();
 		TcpSocketInfo InitTCPSOCKINFO(std::string ip,int port, TCPSOCK sock,int type);
 		std::vector<TcpSocketInfo> SocketPool;
-		
+		void SetErrorMsg(std::string ErrorMsg,int ErrorCode); //设置错误信息
+
 		#ifdef WIN32
 				bool InitWinSocket();
 		#endif // !WIN32

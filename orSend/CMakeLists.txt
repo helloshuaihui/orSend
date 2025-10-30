@@ -4,6 +4,6 @@
 cmake_minimum_required (VERSION 3.8)
 
 # 将源代码添加到此项目的可执行文件。
-add_executable (orSend "orSend.cpp" "orSend.h" "core/TcpSocketClass.h" "core/TcpSocketClass.cpp")
+add_executable (orSend "orSend.cpp" "orSend.h" "core/TcpSocketClass.h" "core/TcpSocketClass.cpp" "test.cpp")
 
 # TODO: 如有需要，请添加测试并安装目标。

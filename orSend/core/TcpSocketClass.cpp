@@ -6,7 +6,7 @@ namespace TCP {
 			WSADATA wsaData;
 			int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
 			if (result != 0) {
-				std::cout << "WSAStartup 初始化失败，状态：" << result << std::endl;
+				SetErrorMsg("WSAStartup 初始化失败", result);
 				return false;
 			}
 			else {
@@ -30,7 +30,7 @@ namespace TCP {
 				addr.sin_addr.S_un.S_addr = inet_addr(ip.c_str());   //ip地址
 				if (bind(NewSocket, (sockaddr*)&addr, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
 				{
-					std::cout << "绑定端口号失败" << std::endl;
+					SetErrorMsg("绑定端口号失败", WSAGetLastError());
 					closesocket(NewSocket);
 					return -1;
 				}
@@ -46,7 +46,7 @@ namespace TCP {
 			TCPSOCK NewSocket = socket(AF_INET, SOCK_STREAM, 0);
 			if (INVALID_SOCKET == NewSocket)
 			{
-				std::cout << "创建客户端句柄失败" << std::endl;
+				SetErrorMsg("创建客户端句柄失败", WSAGetLastError());
 				return -1;
 			}
 			else {
@@ -54,12 +54,12 @@ namespace TCP {
 				serverAddr.sin_family = AF_INET;
 				serverAddr.sin_port = htons(port);
 				if (inet_pton(AF_INET, ip.c_str(), &serverAddr.sin_addr) != 1) {
-					std::cout << "IP 地址解析失败:" << WSAGetLastError() << std::endl;
+					SetErrorMsg("IP 地址解析失败", WSAGetLastError());
 					return -1;
 				}
 				// 4. 连接服务器
 				if (connect(NewSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-					std::cout << "连接服务器失败:" << WSAGetLastError() << std::endl;
+					SetErrorMsg("连接服务器失败", WSAGetLastError());
 					return -1;
 				}
 				else {
@@ -80,7 +80,16 @@ namespace TCP {
 			return NewSocket;
 		}
 	#endif // WIN32
-	TcpSocketClass::TcpSocketClass()
+	void TcpSocketClass::PrintError()
+	{
+		if (this->IsPrintError) {
+			std::cout <<"[ERROR]" << this->ErrorMsg << " 错误代码:" << this->ErrorCode << std::endl;
+		}
+	}
+	TcpSocketClass::TcpSocketClass():
+		ErrorMsg(""),
+		ErrorCode(0),
+		IsPrintError(true)
 	{
 		#ifdef WIN32
 			InitWinSocket();
@@ -119,26 +128,23 @@ namespace TCP {
 	TcpSocketInfo TcpSocketClass::InitTCPSOCKINFO(std::string ip, int port, TCPSOCK sock,int type)
 	{
 		TcpSocketInfo info;
-
-		// 1. 初始化已知参数（ip和port）
 		info.ip = std::move(ip);  // 使用move减少拷贝
-		info.port = port;
-
-		// 2. 初始化sockId（默认设为无效值，后续连接成功后再更新）
+		info.port = port; //端口
 		info.sockId = sock;  // 复用之前定义的无效句柄
-
-		// 3. 初始化连接时间（当前系统时间）
-		info.connTime = getCurrentTimeString();
-
-		// 4. 初始化连接状态（默认设为true，代表刚建立连接）
-		info.connStatus = true;
-
-		//定义socket连接类型
-		info.type = type;
+		info.connTime = getCurrentTimeString(); //获取当前系统时间
+		info.connStatus = true; //连接状态 默认true
+		info.type = type; //定义socket连接类型
 		return info;
+	}
+	void TcpSocketClass::SetErrorMsg(std::string ErrorMsg, int ErrorCode)
+	{
+		this->ErrorMsg = ErrorMsg;
+		this->ErrorCode = ErrorCode;
+		this->PrintError();
 	}
 	void TcpSocketClass::PrintSocketPool()
 	{
+		std::cout << "开始打印socket当前socket数据" << std::endl;
 		for (int i = 0;i < this->SocketPool.size();i++) {
 			std::cout
 				<< "socket:" << this->SocketPool[i].sockId << "\n"
