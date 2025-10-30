@@ -221,12 +221,12 @@ private:
 
                     // 关闭套接字并从列表中移除
                     closesocket(clientSock);
+                    
                     it = m_clientSocks.erase(it);  // 迭代器后移
                     std::cout << "当前连接数：" << m_clientSocks.size() << std::endl;
                     continue;  // 跳过后续自增
                 }
             }
-
             ++it;  // 迭代器自增
         }
     }
@@ -247,7 +247,7 @@ private:
     std::mutex m_clientMutex;                // 客户端列表互斥锁（线程安全）
 };
 
-int main() {
+int a() {
     SelectTcpServer server;
     if (!server.Start()) {
         std::cerr << "服务器启动失败" << std::endl;

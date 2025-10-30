@@ -86,10 +86,26 @@ namespace TCP {
 			std::cout <<"[ERROR]" << this->ErrorMsg << " 错误代码:" << this->ErrorCode << std::endl;
 		}
 	}
+	void TcpSocketClass::OnConn(TCPSOCK sock)
+	{
+		std::cout << "收到来自 " << sock << "的连接" << std::endl;
+		PrintSocketPool();
+
+	}
+	void TcpSocketClass::OnMessage(TCPSOCK sock, std::string& buf)
+	{
+		std::cout << "收到来自：" << sock << "的消息:" << buf << std::endl;
+	}
+	void TcpSocketClass::OnClose(TCPSOCK sock)
+	{
+		std::cout << "来自 " << sock << "的连接断开" << std::endl;
+		PrintSocketPool();
+	}
 	TcpSocketClass::TcpSocketClass():
 		ErrorMsg(""),
 		ErrorCode(0),
-		IsPrintError(true)
+		IsPrintError(true),
+		MaxListenNum(64)
 	{
 		#ifdef WIN32
 			InitWinSocket();
@@ -143,7 +159,7 @@ namespace TCP {
 	}
 	bool TcpSocketClass::ListenServerSocket(TcpSocketInfo& ServerSockt, int MaxConn)
 	{
-		int SSocket = SSocket;
+		int SSocket = ServerSockt.sockId;
 		if (listen(SSocket, MaxConn) == SOCKET_ERROR) {
 			std::cerr << "监听失败，错误码：" << WSAGetLastError() << std::endl;
 			SetErrorMsg("监听失败", WSAGetLastError());
@@ -189,35 +205,20 @@ namespace TCP {
 					if (ret == 0) continue;  // 无其他事件，继续循环
 				}
 				//处理消息事件
+				HandleClientEvents(readSet, TmpSocketPool);
 			}
 		}
 		return false;
 	}
 	bool TcpSocketClass::RemoveTcpSocketInfo(TCPSOCK DeleteSockId)
 	{
-		std::lock_guard<std::mutex> lock(socketPoolMutex); // 加锁，保证线程安全
-
-	// 遍历查找 sockId 匹配的元素
-		auto it = std::find_if(SocketPool.begin(), SocketPool.end(),
-			[DeleteSockId](const TcpSocketInfo& info) {
-				return info.sockId == DeleteSockId; // 匹配目标 sockId
-			});
-
-		if (it == SocketPool.end()) {
-			// 未找到目标元素
-			return false;
+		for (int i = 0; i < SocketPool.size(); i++) {
+			if (DeleteSockId == SocketPool.at(i).sockId) {
+				SocketPool.erase(SocketPool.begin()+i);
+				return true;
+			}
 		}
-		// 1. 关闭对应的 socket（释放系统资源）
-		if (it->connStatus) { // 仅在连接状态为true时关闭
-			#ifdef _WIN32
-				closesocket(it->sockId); // Windows 关闭socket
-			#else
-				close(it->sockId);       // Linux 关闭socket
-			#endif
-		}
-		// 2. 从 vector 中删除该元素
-		SocketPool.erase(it);
-		return true;
+		return false;
 	}
 	bool TcpSocketClass::HandleNewConnection(TCPSOCK ServerSocket,std::vector<TCPSOCK> &SockPool)
 	{
@@ -234,8 +235,51 @@ namespace TCP {
 		inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN);
 		int clientPort = ntohs(clientAddr.sin_port);
 		SockPool.push_back(clientSock);
-		InitTCPSOCKINFO(std::string(clientIp), clientPort,clientSock, SocketType::LocalClient);
+		SocketPool.push_back(InitTCPSOCKINFO(std::string(clientIp), clientPort, clientSock, SocketType::LocalClient));
+		OnConn(clientSock);
 		return true;
+	}
+	bool TcpSocketClass::HandleClientEvents(fd_set& readSet, std::vector<TCPSOCK>& SockPool)
+	{
+		std::lock_guard<std::mutex> lock(TmpMutex);
+		for (int i = 0; i < SockPool.size();i++) {
+			TCPSOCK clientSock = SockPool.at(i);
+			if (FD_ISSET(clientSock, &readSet)) {
+				char buffer[TCPMAXBUFSIZE] = {0};
+				std::string buff;
+				int recvLen = recv(clientSock, buffer, TCPMAXBUFSIZE, 0);
+				buff = buffer;
+				if (buff.size() > 0) {
+					// 接收数据成功
+					OnMessage(clientSock, buff);
+				}
+				else {
+					// 连接断开或错误
+					if (recvLen == 0) {
+						
+					}
+					else {
+						//打印错误消息
+						SetErrorMsg("接收数据失败", WSAGetLastError());
+					}
+					// 关闭套接字并从列表中移除
+					closesocket(clientSock);
+					SockPool.erase(SockPool.begin() + i); //删除一个套接字
+					RemoveTcpSocketInfo(clientSock); //从池塘删除
+					OnClose(clientSock);
+				}
+			}
+		}
+		return false;
+	}
+	TcpSocketInfo* TcpSocketClass::GetSockInfo(TCPSOCK sock)
+	{
+		for (int i = 0; i < SocketPool.size();i++) {
+			if (sock == SocketPool.at(i).sockId) {
+				return  &SocketPool.at(i);
+			}
+		}
+		return nullptr;
 	}
 	void TcpSocketClass::PrintSocketPool()
 	{
@@ -249,6 +293,17 @@ namespace TCP {
 				<< "ctime:" << this->SocketPool[i].connTime << "\n"
 				<< "type:" << ((this->SocketPool[i].type == 1) ? "server" : "client") << "\n"
 				<< std::endl;
+		}
+	}
+	bool TcpSocketClass::StartServer(TCPSOCK sock)
+	{
+		TcpSocketInfo *SockInfo = GetSockInfo(sock);
+		if (SockInfo == nullptr) {
+			SetErrorMsg("未找到该socket id信息",0);
+			return false;
+		}
+		else {
+			ListenServerSocket(*SockInfo, MaxListenNum);
 		}
 	}
 }
