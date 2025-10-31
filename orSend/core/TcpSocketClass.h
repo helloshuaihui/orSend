@@ -14,6 +14,8 @@
 	#pragma comment(lib, "ws2_32.lib")
 	using TCPSOCK = SOCKET;
 #endif // WIN32
+
+#include <functional>
 constexpr int TCPMAXBUFSIZE = 6000;
 namespace TCP {
 	enum SocketType
@@ -71,6 +73,5 @@ namespace TCP {
 				bool InitWinSocket();
 		#endif // !WIN32
 	};
-
 }
 #endif 

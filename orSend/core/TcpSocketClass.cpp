@@ -112,7 +112,6 @@ namespace TCP {
 		#endif // WIN32
 		std::cout << "欢迎使用tcp服务器" << std::endl;
 	}
-
 	TcpSocketClass::~TcpSocketClass()
 	{
 		#ifdef WIN32
@@ -189,7 +188,6 @@ namespace TCP {
 						maxSock = clientSock;
 					}
 				}
-
 				int ret = select(maxSock + 1, &readSet, nullptr, nullptr, &timeout);
 				if (ret == SOCKET_ERROR) {
 					SetErrorMsg("select 失败", WSAGetLastError());
