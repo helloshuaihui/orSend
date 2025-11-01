@@ -30,8 +30,10 @@ namespace TCP {
 		//映射函数
 		//socket连接等处理函数
 		void OnConn(TCPSOCK sock) override;
-		void OnMessage(TCPSOCK sock, std::string& buf) override;
-		void OnClose(TCPSOCK sock) override;
+		void OnServerMessage(TCPSOCK sock, std::string& buf) override;
+		void OnServerClose(TCPSOCK sock) override;
+		void OnClientMessage(TCPSOCK sock, std::string& buf) override;
+		void OnClientClose(TCPSOCK sock) override;
 	};
 }
 #endif 

@@ -49,10 +49,13 @@ namespace TCP {
 		//基础信息设置
 		int MaxListenNum;
 		virtual void OnConn(TCPSOCK sock); //客户端连接回调函数
-		virtual void OnMessage(TCPSOCK sock, std::string& buf); //接收消息回调函数
-		virtual void OnClose(TCPSOCK sock); //连接断开回调函数
+		virtual void OnServerMessage(TCPSOCK sock, std::string& buf); //服务端 接收消息回调函数
+		virtual void OnServerClose(TCPSOCK sock); //服务端 连接断开回调函数
+		virtual void OnClientMessage(TCPSOCK sock, std::string& buf); //服务端 接收消息回调函数
+		virtual void OnClientClose(TCPSOCK sock); //服务端 连接断开回调函数
 		void PrintSocketPool(); //打印socket信息池
 		bool StartServer(TCPSOCK sock);
+		bool StartClient(TCPSOCK sock);
 		TcpSocketClass();
 		~TcpSocketClass();
 	private:	
@@ -62,7 +65,8 @@ namespace TCP {
 		std::string getCurrentTimeString(); //获取当前时间
 		//socket处理函数等
 		std::vector<TcpSocketInfo> SocketPool; //socket池
-		bool ListenServerSocket(TcpSocketInfo& ServerSockt, int MaxConn); //监听socket
+		bool ListenServerSocket(TcpSocketInfo& ServerSockt, int MaxConn); //监听服务器socket
+		bool ListenClientSocket(TcpSocketInfo& ClientSockt); //监听客户端socket消息
 		TcpSocketInfo InitTCPSOCKINFO(std::string ip,int port, TCPSOCK sock,int type); //初始化socket基本状态信息
 		void SetErrorMsg(std::string ErrorMsg,int ErrorCode); //设置错误信息
 		bool RemoveTcpSocketInfo(TCPSOCK targetSockId); //从socket池塘移出数据

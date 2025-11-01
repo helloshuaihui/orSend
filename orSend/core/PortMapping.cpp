@@ -65,14 +65,30 @@ namespace TCP {
 
 	void PortMapping::OnConn(TCPSOCK sock)
 	{
+		//本地连接进来 创建一个与服务端的连接
 	}
 
-	void PortMapping::OnMessage(TCPSOCK sock, std::string& buf)
+	void PortMapping::OnServerMessage(TCPSOCK sock, std::string& buf)
 	{
+		//监听到本地端口的信息 转发到 另外一个服务器客户端
 	}
 
-	void PortMapping::OnClose(TCPSOCK sock)
+	void PortMapping::OnServerClose(TCPSOCK sock)
 	{
+		//本地连接关闭 同时关闭与服务器的连接
+
+	}
+	void PortMapping::OnClientMessage(TCPSOCK sock, std::string& buf)
+	{
+		//收到来自服务器的消息 转发信息到客户端
+	}
+
+	void PortMapping::OnClientClose(TCPSOCK sock)
+	{
+		/*分两种
+			1.连接到映射本地server的 client sock关闭
+			2.本地与服务器的连接的client sock关闭
+		*/
 	}
 	
 }

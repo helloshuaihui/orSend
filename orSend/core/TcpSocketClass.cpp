@@ -92,11 +92,20 @@ namespace TCP {
 		PrintSocketPool();
 
 	}
-	void TcpSocketClass::OnMessage(TCPSOCK sock, std::string& buf)
+	void TcpSocketClass::OnServerMessage(TCPSOCK sock, std::string& buf)
 	{
 		std::cout << "收到来自：" << sock << "的消息:" << buf << std::endl;
 	}
-	void TcpSocketClass::OnClose(TCPSOCK sock)
+	void TcpSocketClass::OnServerClose(TCPSOCK sock)
+	{
+		std::cout << "来自 " << sock << "的连接断开" << std::endl;
+		PrintSocketPool();
+	}
+	void TcpSocketClass::OnClientMessage(TCPSOCK sock, std::string& buf)
+	{
+		std::cout << "收到来自：" << sock << "的消息:" << buf << std::endl;
+	}
+	void TcpSocketClass::OnClientClose(TCPSOCK sock)
 	{
 		std::cout << "来自 " << sock << "的连接断开" << std::endl;
 		PrintSocketPool();
@@ -170,7 +179,7 @@ namespace TCP {
 			ServerSockt.EventLoopStatu = true;
 			std::vector<TCPSOCK> TmpSocketPool;
 			while (ServerSockt.EventLoopStatu) {
-				fd_set readSet;
+				fd_set readSet{};
 				FD_ZERO(&readSet);
 				// 将监听套接字加入读集合（监控新连接）
 				FD_SET(SSocket, &readSet);
@@ -204,6 +213,38 @@ namespace TCP {
 				}
 				//处理消息事件
 				HandleClientEvents(readSet, TmpSocketPool);
+			}
+		}
+		return false;
+	}
+	bool TcpSocketClass::ListenClientSocket(TcpSocketInfo& ClientSockt)
+	{
+		TCPSOCK SSocket = ClientSockt.sockId;  // 传入的socket句柄
+		ClientSockt.EventLoopStatu = true;
+		while (ClientSockt.EventLoopStatu)
+		{
+			char buffer[TCPMAXBUFSIZE] = { 0 };
+			std::string buff;
+			int recvLen = recv(SSocket, buffer, TCPMAXBUFSIZE, 0);
+			buff = buffer;
+			if (buff.size() > 0) {
+				// 接收数据成功
+				OnMessage(SSocket, buff);
+			}
+			else {
+				// 连接断开或错误
+				if (recvLen == 0) {
+				}
+				else {
+					//打印错误消息
+					SetErrorMsg("接收数据失败", WSAGetLastError());
+				}
+				// 关闭套接字并从列表中移除
+				ClientSockt.EventLoopStatu = false; //停止循环 只是从池塘移除了并未释放所以得清除
+				closesocket(SSocket);
+				RemoveTcpSocketInfo(SSocket); //从池塘删除 
+				OnClose(SSocket);
+				return false;
 			}
 		}
 		return false;
@@ -303,5 +344,17 @@ namespace TCP {
 		else {
 			ListenServerSocket(*SockInfo, MaxListenNum);
 		}
+	}
+	bool TcpSocketClass::StartClient(TCPSOCK sock)
+	{
+		TcpSocketInfo* SockInfo = GetSockInfo(sock);
+		if (SockInfo == nullptr) {
+			SetErrorMsg("未找到该socket id信息", 0);
+			return false;
+		}
+		else {
+			ListenClientSocket(*SockInfo);
+		}
+		return false;
 	}
 }
