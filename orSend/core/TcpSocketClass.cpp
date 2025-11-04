@@ -229,7 +229,7 @@ namespace TCP {
 			buff = buffer;
 			if (buff.size() > 0) {
 				// 接收数据成功
-				OnMessage(SSocket, buff);
+				OnClientMessage(SSocket, buff);
 			}
 			else {
 				// 连接断开或错误
@@ -243,7 +243,7 @@ namespace TCP {
 				ClientSockt.EventLoopStatu = false; //停止循环 只是从池塘移除了并未释放所以得清除
 				closesocket(SSocket);
 				RemoveTcpSocketInfo(SSocket); //从池塘删除 
-				OnClose(SSocket);
+				OnClientClose(SSocket);
 				return false;
 			}
 		}
@@ -290,7 +290,7 @@ namespace TCP {
 				buff = buffer;
 				if (buff.size() > 0) {
 					// 接收数据成功
-					OnMessage(clientSock, buff);
+					OnServerMessage(clientSock, buff);
 				}
 				else {
 					// 连接断开或错误
@@ -305,7 +305,7 @@ namespace TCP {
 					closesocket(clientSock);
 					SockPool.erase(SockPool.begin() + i); //删除一个套接字
 					RemoveTcpSocketInfo(clientSock); //从池塘删除
-					OnClose(clientSock);
+					OnServerClose(clientSock);
 				}
 			}
 		}
