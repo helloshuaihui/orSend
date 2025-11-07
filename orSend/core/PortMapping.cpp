@@ -1,12 +1,25 @@
 #include "PortMapping.h"
 namespace TCP {
 	PortMapping::PortMapping():
-		allocateServerType(ServerStrategy::DELAY)
+		allocateServerType(TCP::ServerStrategy::DELAY)
 	{
 	}
-
 	PortMapping::~PortMapping()
 	{
+	}
+	bool PortMapping::AddServerBasicInfoPool(std::string &ip, int port)
+	{
+		ServerBasicInfo SInfo = InitServerBasicInfo(ip,port);
+		//≤‚ ‘—”≥Ÿ
+		ServerBasicInfoPool.push_back(SInfo);
+		return true;
+	}
+	bool PortMapping::AddLocalBasicInfoPool(std::string& ip, int port)
+	{
+		LocalPortBasicInfo SInfo = InitLocalBasicInfo(ip, port);
+		//≤‚ ‘—”≥Ÿ
+		LocalBasicInfoPool.push_back(SInfo);
+		return true;
 	}
 	SockBingInfo PortMapping::InitSockBingInfo(TCPSOCK LID, TCPSOCK SID)
 	{
@@ -23,7 +36,7 @@ namespace TCP {
 				return true;
 			}
 		}
-		return false;
+		return true;
 	}
 	bool PortMapping::DelServeSock(TCPSOCK SID)
 	{
@@ -62,6 +75,26 @@ namespace TCP {
 			}
 		}
 		return nullptr;
+	}
+	ServerBasicInfo PortMapping::InitServerBasicInfo(std::string ip, int port)
+	{
+		ServerBasicInfo info;
+		info.ip = ip;
+		info.port = port;
+		info.ccout = 0;
+		info.isOnlie = true;
+		info.delay = 0;
+		return info;
+	}
+
+	LocalPortBasicInfo PortMapping::InitLocalBasicInfo(std::string ip, int port)
+	{
+		LocalPortBasicInfo info;
+		info.ip = ip;
+		info.port = port;
+		info.isListen = false;
+		info.ccout = 0;
+		return info;
 	}
 
 	ServerBasicInfo* PortMapping::GetServerBasicInfo(ServerStrategy type)
