@@ -30,10 +30,16 @@ namespace TCP {
 		if (LocalBasicInfoPool.size() == 0) {
 			std::cout << "并未添加本地监听的IP以及端口数据" << std::endl;
 		}
+	
 		for (int i = 0;i < LocalBasicInfoPool.size();i++) {
-			std::thread  th([this, i]() -> void {
-				std::cout << LocalBasicInfoPool.at(i).ip << std::endl;
-				});
+			LocalPortBasicInfo a = LocalBasicInfoPool.at(i);
+			std::thread  th([this, a]() -> void {
+				//开始监听
+				TCPSOCK sock = creatTcpScoketserver(a.ip, a.port);
+				if (sock!=-1) {
+					StartServer(sock);
+				}
+			});
 			th.detach();
 		}
 		return false;
