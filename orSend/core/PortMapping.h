@@ -22,7 +22,7 @@ namespace TCP {
 		bool isOnlie; //是否在线
 		int ccout; //当前已连接数
 	};
-	struct LocalPortInfo {
+	struct LocalPortBasicInfo {
 		std::string ip; //ip
 		int port; //端口
 		int ccout; //当前已连接数
@@ -37,11 +37,15 @@ namespace TCP {
 		~PortMapping();
 		/*添加需要转发的服务器*/
 		bool AddServerBasicInfoPool(std::string &ip, int port); 
-
+		/*添加本地监听的端口*/
+		bool AddLocalBasicInfoPool(std::string& ip, int port);
+		/*开始监听本地以及服务器端口进行转发*/
+		bool StratPortMapping();
 	private:
 		std::vector<TcpSocketInfo> LockSockPool;/*本地socket信息池*/
 		std::vector<TcpSocketInfo> ServeSockPool; /*服务器socket信息池*/
 		std::vector<ServerBasicInfo> ServerBasicInfoPool; /*服务器基本信息池*/
+		std::vector<LocalPortBasicInfo> LocalBasicInfoPool; /*本地端口基本信息池*/
 		std::vector<SockBingInfo> SockBingPool; /*本地sock与服务器sock映射池*/
 		//基础函数
 		/*初始化绑定*/
@@ -59,7 +63,7 @@ namespace TCP {
 		/*初始化服务器信息*/
 		ServerBasicInfo InitServerBasicInfo(std::string ip,int port);
 		/*初始化本地监听信息*/
-		ServerBasicInfo InitLocalBasicInfo(std::string ip, int port);
+		LocalPortBasicInfo InitLocalBasicInfo(std::string ip, int port);
 		/*获取一个服务器信息进行转发,默认低延迟*/
 		ServerBasicInfo* GetServerBasicInfo(ServerStrategy type); 
 		//映射函数

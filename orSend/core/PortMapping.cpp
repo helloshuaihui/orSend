@@ -21,6 +21,23 @@ namespace TCP {
 		LocalBasicInfoPool.push_back(SInfo);
 		return true;
 	}
+	bool PortMapping::StratPortMapping()
+	{
+		//检查是否有服务器以及本地数据
+		if (ServerBasicInfoPool.size()==0) {
+			std::cout << "并未添加服务器数据" << std::endl;
+		}
+		if (LocalBasicInfoPool.size() == 0) {
+			std::cout << "并未添加本地监听的IP以及端口数据" << std::endl;
+		}
+		for (int i = 0;i < LocalBasicInfoPool.size();i++) {
+			std::thread  th([this, i]() -> void {
+				std::cout << LocalBasicInfoPool.at(i).ip << std::endl;
+				});
+			th.detach();
+		}
+		return false;
+	}
 	SockBingInfo PortMapping::InitSockBingInfo(TCPSOCK LID, TCPSOCK SID)
 	{
 		SockBingInfo info;
