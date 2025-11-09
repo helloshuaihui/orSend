@@ -158,12 +158,6 @@ namespace TCP {
 		}
 		return nullptr;
 	}
-
-	void PortMapping::OnConn(TCPSOCK sock)
-	{
-		//本地连接进来 创建一个与服务端的连接
-	}
-
 	void PortMapping::OnServerMessage(TCPSOCK sock, std::string& buf)
 	{
 		//监听到本地端口的信息 转发到 另外一个服务器客户端
@@ -179,6 +173,11 @@ namespace TCP {
 			TCPSOCK ssock = connTcpScokerServer(serverBasicInfo->ip,serverBasicInfo->port);
 			if (ssock != -1) {
 				SockBingPool.push_back(InitSockBingInfo(sock, ssock)); //绑定并添加信息
+				//同时开启消息监听
+				std::thread th([this, ssock]()->void {
+					StartClient(ssock);
+				});
+				th.detach();
 				send(ssock, buf.c_str(), buf.size(), 0); //转发消息
 			}
 			else {
