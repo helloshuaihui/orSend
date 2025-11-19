@@ -48,13 +48,21 @@ namespace TCP {
 		void PrintError(); //错误打印函数
 		//基础信息设置
 		int MaxListenNum;
-		virtual void OnConn(TCPSOCK sock); //客户端连接回调函数
-		virtual void OnServerMessage(TCPSOCK sock, std::string& buf); //服务端 接收消息回调函数
-		virtual void OnServerClose(TCPSOCK sock); //服务端 连接断开回调函数
-		virtual void OnClientMessage(TCPSOCK sock, std::string& buf); //服务端 接收消息回调函数
-		virtual void OnClientClose(TCPSOCK sock); //服务端 连接断开回调函数
-		void PrintSocketPool(); //打印socket信息池
+		/*客户端连接回调函数*/
+		virtual void OnServerConn(TCPSOCK sock);
+		/*服务端 接收消息回调函数*/
+		virtual void OnServerMessage(TCPSOCK sock, std::string buf); 
+		/*服务端 连接断开回调函数*/
+		virtual void OnServerClose(TCPSOCK sock);
+		/*客户端 接收消息回调函数*/
+		virtual void OnClientMessage(TCPSOCK sock, std::string buf);
+		/*客户端 连接断开回调函数*/
+		virtual void OnClientClose(TCPSOCK sock);
+		/*打印socket信息池*/
+		void PrintSocketPool(); 
+		/*开始监听服务器*/
 		bool StartServer(TCPSOCK sock);
+		/*开始监听客户端*/
 		bool StartClient(TCPSOCK sock);
 		TcpSocketClass();
 		~TcpSocketClass();
@@ -62,16 +70,26 @@ namespace TCP {
 		std::mutex socketPoolMutex; // 保护 SocketPool 的线程安全
 		std::mutex TmpMutex; // 临时锁
 		//工具函数
-		std::string getCurrentTimeString(); //获取当前时间
+		/*获取当前时间*/
+		std::string getCurrentTimeString();
 		//socket处理函数等
-		std::vector<TcpSocketInfo> SocketPool; //socket池
-		bool ListenServerSocket(TcpSocketInfo& ServerSockt, int MaxConn); //监听服务器socket
-		bool ListenClientSocket(TcpSocketInfo& ClientSockt); //监听客户端socket消息
-		TcpSocketInfo InitTCPSOCKINFO(std::string ip,int port, TCPSOCK sock,int type); //初始化socket基本状态信息
-		void SetErrorMsg(std::string ErrorMsg,int ErrorCode); //设置错误信息
-		bool RemoveTcpSocketInfo(TCPSOCK targetSockId); //从socket池塘移出数据
-		bool HandleNewConnection(TCPSOCK ServerSocket, std::vector<TCPSOCK> &SockPool); //处理新连接
+		/*socket池*/
+		std::vector<TcpSocketInfo> SocketPool;
+		/*监听服务器socket*/
+		bool ListenServerSocket(TcpSocketInfo& ServerSockt, int MaxConn); 
+		/*监听客户端socket消息*/
+		bool ListenClientSocket(TcpSocketInfo& ClientSockt);
+		/*初始化socket基本状态信息*/
+		TcpSocketInfo InitTCPSOCKINFO(std::string ip,int port, TCPSOCK sock,int type);
+		/*设置错误信息*/
+		void SetErrorMsg(std::string ErrorMsg,int ErrorCode);
+		/*从socket池删除基础信息*/
+		bool RemoveTcpSocketInfo(TCPSOCK targetSockId);
+		/*处理新连接*/
+		bool HandleNewConnection(TCPSOCK ServerSocket, std::vector<TCPSOCK> &SockPool);
+		/*处理客户端事件*/
 		bool HandleClientEvents(fd_set& readSet,std::vector<TCPSOCK>& SockPool);
+		/*获取soket基础信息*/
 		TcpSocketInfo* GetSockInfo(TCPSOCK sock);
 		#ifdef WIN32
 				bool InitWinSocket();

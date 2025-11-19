@@ -68,7 +68,7 @@ namespace TCP {
 		ServerBasicInfo* GetServerBasicInfo(ServerStrategy type); 
 		//映射函数
 		//socket连接等处理函数、
-		void OnConn(TCPSOCK sock) override;
+		void OnServerConn(TCPSOCK sock) override;
 		void OnServerMessage(TCPSOCK sock, std::string& buf) override;
 		void OnServerClose(TCPSOCK sock) override;
 		void OnClientMessage(TCPSOCK sock, std::string& buf) override;

@@ -86,25 +86,18 @@ namespace TCP {
 			std::cout <<"[ERROR]" << this->ErrorMsg << " 错误代码:" << this->ErrorCode << std::endl;
 		}
 	}
-	void TcpSocketClass::OnConn(TCPSOCK sock)
+	void TcpSocketClass::OnServerConn(TCPSOCK sock)
 	{
-		std::cout << "收到来自 " << sock << "的连接" << std::endl;
 		PrintSocketPool();
-
 	}
-	void TcpSocketClass::OnServerMessage(TCPSOCK sock, std::string& buf)
+	void TcpSocketClass::OnServerMessage(TCPSOCK sock, std::string buf)
 	{
-		std::cout << "收到来自：" << sock << "的消息:" << buf << std::endl;
 	}
 	void TcpSocketClass::OnServerClose(TCPSOCK sock)
 	{
-		std::cout << "来自 " << sock << "的连接断开" << std::endl;
 		PrintSocketPool();
 	}
-	void TcpSocketClass::OnClientMessage(TCPSOCK sock, std::string& buf)
-	{
-		std::cout << "收到来自：" << sock << "的消息:" << buf << std::endl;
-	}
+	void TcpSocketClass::OnClientMessage(TCPSOCK sock, std::string buf){}
 	void TcpSocketClass::OnClientClose(TCPSOCK sock)
 	{
 		std::cout << "来自 " << sock << "的连接断开" << std::endl;
@@ -251,6 +244,7 @@ namespace TCP {
 	}
 	bool TcpSocketClass::RemoveTcpSocketInfo(TCPSOCK DeleteSockId)
 	{
+		std::unique_lock<std::mutex> look(socketPoolMutex);
 		for (int i = 0; i < SocketPool.size(); i++) {
 			if (DeleteSockId == SocketPool.at(i).sockId) {
 				SocketPool.erase(SocketPool.begin()+i);
@@ -275,7 +269,7 @@ namespace TCP {
 		int clientPort = ntohs(clientAddr.sin_port);
 		SockPool.push_back(clientSock);
 		SocketPool.push_back(InitTCPSOCKINFO(std::string(clientIp), clientPort, clientSock, SocketType::LocalClient));
-		OnConn(clientSock);
+		OnServerConn(clientSock);
 		return true;
 	}
 	bool TcpSocketClass::HandleClientEvents(fd_set& readSet, std::vector<TCPSOCK>& SockPool)
