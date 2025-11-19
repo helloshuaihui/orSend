@@ -158,9 +158,9 @@ namespace TCP {
 		}
 		return nullptr;
 	}
-	void PortMapping::OnConn(TCPSOCK sock)
+	void PortMapping::OnServerConn(TCPSOCK sock)
 	{
-		//绑定
+		//绑定 
 		ServerBasicInfo* serverBasicInfo = GetServerBasicInfo(allocateServerType);
 		if (serverBasicInfo == nullptr) {
 			//如果没找到合适的服务器信息 则打印错误信息
@@ -181,7 +181,7 @@ namespace TCP {
 			std::cout << "连接到服务器失败,转发失败" << std::endl;
 		}
 	}
-	void PortMapping::OnServerMessage(TCPSOCK sock, std::string& buf)
+	void PortMapping::OnServerMessage(TCPSOCK sock, std::string buf)
 	{
 		//监听到本地端口的信息 转发到 另外一个服务器客户端
 		//先找到服务器
@@ -230,7 +230,7 @@ namespace TCP {
 		}
 
 	}
-	void PortMapping::OnClientMessage(TCPSOCK sock, std::string& buf)
+	void PortMapping::OnClientMessage(TCPSOCK sock, std::string buf)
 	{
 		std::cout << "监听到服务器的数据->" << buf << std::endl;
 		//收到来自服务器的消息 转发信息到客户端

@@ -268,13 +268,14 @@ namespace TCP {
 		inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN);
 		int clientPort = ntohs(clientAddr.sin_port);
 		SockPool.push_back(clientSock);
+		std::unique_lock<std::mutex> look(socketPoolMutex);
 		SocketPool.push_back(InitTCPSOCKINFO(std::string(clientIp), clientPort, clientSock, SocketType::LocalClient));
+		look.unlock();
 		OnServerConn(clientSock);
 		return true;
 	}
 	bool TcpSocketClass::HandleClientEvents(fd_set& readSet, std::vector<TCPSOCK>& SockPool)
 	{
-		std::lock_guard<std::mutex> lock(TmpMutex);
 		for (int i = 0; i < SockPool.size();i++) {
 			TCPSOCK clientSock = SockPool.at(i);
 			if (FD_ISSET(clientSock, &readSet)) {
@@ -307,6 +308,7 @@ namespace TCP {
 	}
 	TcpSocketInfo* TcpSocketClass::GetSockInfo(TCPSOCK sock)
 	{
+		std::unique_lock<std::mutex> look(socketPoolMutex);
 		for (int i = 0; i < SocketPool.size();i++) {
 			if (sock == SocketPool.at(i).sockId) {
 				return  &SocketPool.at(i);
