@@ -109,7 +109,6 @@ namespace TCP {
 		info.delay = 0;
 		return info;
 	}
-
 	LocalPortBasicInfo PortMapping::InitLocalBasicInfo(std::string ip, int port)
 	{
 		LocalPortBasicInfo info;
@@ -119,7 +118,6 @@ namespace TCP {
 		info.ccout = 0;
 		return info;
 	}
-
 	ServerBasicInfo* PortMapping::GetServerBasicInfo(ServerStrategy type)
 	{
 		//策略模式 单一策略 延迟优先 数量优先
@@ -157,6 +155,31 @@ namespace TCP {
 			return TargetServer;
 		}
 		return nullptr;
+	}
+	void PortMapping::forwardData(SOCKET from_sock, SOCKET to_sock, ForwardType forwardType)
+	{
+		char buffer[TCPMAXBUFSIZE]; // 数据缓冲区
+		while (true) {
+			// 从from_sock接收数据
+			int recv_len = recv(from_sock, buffer, sizeof(buffer), 0);
+			if (recv_len <= 0) {
+				break;
+			}
+			// 转发到to_sock
+			int send_len = send(to_sock, buffer, recv_len, 0);
+			if (send_len <= 0) {
+				break;
+			}
+		}
+		// 关闭套接字
+		if (ForwardType::CTOS) {
+			//重新创建转发
+
+		}
+		else {
+			closesocket(from_sock);
+			closesocket(to_sock);
+		}
 	}
 	void PortMapping::OnServerConn(TCPSOCK sock)
 	{

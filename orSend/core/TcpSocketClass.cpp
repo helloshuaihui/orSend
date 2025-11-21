@@ -107,7 +107,8 @@ namespace TCP {
 		ErrorMsg(""),
 		ErrorCode(0),
 		IsPrintError(true),
-		MaxListenNum(64)
+		MaxListenNum(64),
+		isListenMsgEvents(false)
 	{
 		#ifdef WIN32
 			InitWinSocket();
@@ -176,7 +177,6 @@ namespace TCP {
 				FD_ZERO(&readSet);
 				// 将监听套接字加入读集合（监控新连接）
 				FD_SET(SSocket, &readSet);
-				std::lock_guard<std::mutex> lock(socketPoolMutex);
 				for (TCPSOCK TmpSocket : TmpSocketPool) {
 					FD_SET(TmpSocket, &readSet);
 				}
@@ -267,7 +267,10 @@ namespace TCP {
 		char clientIp[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN);
 		int clientPort = ntohs(clientAddr.sin_port);
-		SockPool.push_back(clientSock);
+		if (isListenMsgEvents) {
+			//判断是否加入事件监听
+			SockPool.push_back(clientSock);
+		}
 		std::unique_lock<std::mutex> look(socketPoolMutex);
 		SocketPool.push_back(InitTCPSOCKINFO(std::string(clientIp), clientPort, clientSock, SocketType::LocalClient));
 		look.unlock();

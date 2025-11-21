@@ -42,12 +42,19 @@ namespace TCP {
 		TCPSOCK connTcpScokerServer(std::string ip, int port);
 		#endif // !WIN32
 		//错误处理
-		std::string ErrorMsg; //错误信息
-		int ErrorCode; //错误代码
-		bool IsPrintError; //是否打印错误
-		void PrintError(); //错误打印函数
+		/*错误信息*/
+		std::string ErrorMsg;
+		/*错误代码*/
+		int ErrorCode;
+		/*是否打印错误*/
+		bool IsPrintError;
+		/*错误打印函数*/
+		void PrintError();
 		//基础信息设置
+		/*最大监听事件数*/
 		int MaxListenNum;
+		/*是否监听客户端消息事件 默认false*/
+		bool isListenMsgEvents;
 		/*客户端连接回调函数*/
 		virtual void OnServerConn(TCPSOCK sock);
 		/*服务端 接收消息回调函数*/
@@ -67,8 +74,10 @@ namespace TCP {
 		TcpSocketClass();
 		~TcpSocketClass();
 	private:	
-		std::mutex socketPoolMutex; // 保护 SocketPool 的线程安全
-		std::mutex TmpMutex; // 临时锁
+		/*保护 SocketPool 的线程安全*/
+		std::mutex socketPoolMutex; 
+		/*临时锁*/
+		std::mutex TmpMutex;
 		//工具函数
 		/*获取当前时间*/
 		std::string getCurrentTimeString();
