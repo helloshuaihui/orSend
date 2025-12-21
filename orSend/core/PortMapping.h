@@ -2,6 +2,10 @@
 #ifndef PORTMAPPING_H
 #define PORTMAPPING_H_H
 #include"TcpSocketClass.h"
+#ifdef __linux__
+	#include <thread>
+#endif // __linux__
+
 namespace TCP {
 	enum class ServerStrategy : int
 	{
@@ -41,9 +45,9 @@ namespace TCP {
 		PortMapping();
 		~PortMapping();
 		/*添加需要转发的服务器*/
-		bool AddServerBasicInfoPool(std::string &ip, int port); 
+		bool AddServerBasicInfoPool(const std::string &ip, int port); 
 		/*添加本地监听的端口*/
-		bool AddLocalBasicInfoPool(std::string& ip, int port);
+		bool AddLocalBasicInfoPool(const std::string& ip, int port);
 		/*开始监听本地以及服务器端口进行转发*/
 		bool StratPortMapping();
 	private:

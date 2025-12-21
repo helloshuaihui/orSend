@@ -48,10 +48,8 @@ namespace TCP {
 	class TcpSocketClass
 	{
 	public:
-		#ifdef WIN32
 		TCPSOCK creatTcpScoketserver(std::string ip,int port);
 		TCPSOCK connTcpScokerServer(std::string ip, int port);
-		#endif // !WIN32
 		//错误处理
 		/*错误信息*/
 		std::string ErrorMsg;

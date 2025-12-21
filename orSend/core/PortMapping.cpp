@@ -7,14 +7,14 @@ namespace TCP {
 	PortMapping::~PortMapping()
 	{
 	}
-	bool PortMapping::AddServerBasicInfoPool(std::string &ip, int port)
+	bool PortMapping::AddServerBasicInfoPool(const std::string &ip, int port)
 	{
 		ServerBasicInfo SInfo = InitServerBasicInfo(ip,port);
 		//测试延迟
 		ServerBasicInfoPool.push_back(SInfo);
 		return true;
 	}
-	bool PortMapping::AddLocalBasicInfoPool(std::string& ip, int port)
+	bool PortMapping::AddLocalBasicInfoPool(const std::string& ip, int port)
 	{
 		LocalPortBasicInfo SInfo = InitLocalBasicInfo(ip, port);
 		//测试延迟

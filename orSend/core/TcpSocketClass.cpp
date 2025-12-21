@@ -19,7 +19,7 @@ namespace TCP {
 	{
 		TCPSOCK NewSocket = socket(AF_INET, SOCK_STREAM, 0);
 		
-		if (INVALID_SOCKET == NewSocket)
+		if (INVALID_SOCK == NewSocket)
 		{
 			#ifdef _WIN32
 				SetErrorMsg("创建服务端句柄失败", WSAGetLastError());
@@ -33,13 +33,18 @@ namespace TCP {
 			sockaddr_in addr = {};
 			addr.sin_family = AF_INET;
 			addr.sin_port = htons(port);		// 端口号
-			addr.sin_addr.S_un.S_addr = inet_addr(ip.c_str());   //ip地址
-			if (bind(NewSocket, (sockaddr*)&addr, sizeof(sockaddr_in)) == SOCKET_ERROR)
+			
+			#ifdef _WIN32
+				addr.sin_addr.S_un.S_addr = inet_addr(ip.c_str());   //ip地址
+			#elif __linux__ //linux
+				addr.sin_addr.s_addr = inet_addr(ip.c_str());   //ip地址
+			#endif 
+			if (bind(NewSocket, (sockaddr*)&addr, sizeof(sockaddr_in)) == SOCK_ERROR)
 			{
 				#ifdef _WIN32
 					SetErrorMsg("绑定端口号失败", WSAGetLastError());
 				#elif __linux__ //linux
-					SetErrorMsg("绑定端口号失败", SOCK_ERROR));
+					SetErrorMsg("绑定端口号失败", SOCK_ERROR);
 				#endif 
 				closesocket(NewSocket);
 				return -1;
@@ -53,7 +58,7 @@ namespace TCP {
 	TCPSOCK TcpSocketClass::connTcpScokerServer(std::string ip, int port)
 	{
 		TCPSOCK NewSocket = socket(AF_INET, SOCK_STREAM, 0);
-		if (INVALID_SOCKET == NewSocket)
+		if (INVALID_SOCK == NewSocket)
 		{
 			#ifdef _WIN32
 				SetErrorMsg("创建客户端句柄失败", WSAGetLastError());
@@ -75,7 +80,7 @@ namespace TCP {
 				return -1;
 			}
 			// 4. 连接服务器
-			if (connect(NewSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+			if (connect(NewSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCK_ERROR) {
 				#ifdef _WIN32
 					SetErrorMsg("连接服务器失败", WSAGetLastError());
 				#elif __linux__
@@ -87,8 +92,8 @@ namespace TCP {
 				//获取端口
 				int LocalPort = -1;
 				sockaddr_in localAddr{};
-				int addrLen = sizeof(localAddr);
-				if (getsockname(NewSocket, (sockaddr*)&localAddr, &addrLen) == SOCKET_ERROR) {
+				socklen_t addrLen = sizeof(localAddr);
+				if (getsockname(NewSocket, (sockaddr*)&localAddr, &addrLen) == SOCK_ERROR) {
 					#ifdef _WIN32 //win32
 						SetErrorMsg("获取端口失败", WSAGetLastError());
 					#elif __linux__ //linux
@@ -185,9 +190,12 @@ namespace TCP {
 	bool TcpSocketClass::ListenServerSocket(TcpSocketInfo& ServerSockt, int MaxConn)
 	{
 		int SSocket = ServerSockt.sockId;
-		if (listen(SSocket, MaxConn) == SOCKET_ERROR) {
-			std::cerr << "监听失败，错误码：" << WSAGetLastError() << std::endl;
-			SetErrorMsg("监听失败", WSAGetLastError());
+		if (listen(SSocket, MaxConn) == SOCK_ERROR) {
+			#ifdef _WIN32 //win32
+				SetErrorMsg("监听失败", WSAGetLastError());
+			#elif __linux__ //linux
+				SetErrorMsg("监听失败", SOCK_ERROR);
+			#endif
 			closesocket(SSocket);
 			RemoveTcpSocketInfo(SSocket);
 			return false;
@@ -214,7 +222,7 @@ namespace TCP {
 					}
 				}
 				int ret = select(maxSock + 1, &readSet, nullptr, nullptr, &timeout);
-				if (ret == SOCKET_ERROR) {
+				if (ret == SOCK_ERROR) {
 					#ifdef _WIN32 //win32
 						SetErrorMsg("SELECT 失败", WSAGetLastError());
 					#elif __linux__ //linux
@@ -287,7 +295,6 @@ namespace TCP {
 	bool TcpSocketClass::HandleNewConnection(TCPSOCK ServerSocket,std::vector<TCPSOCK> &SockPool)
 	{
 		sockaddr_in clientAddr{};
-		int clientAddrLen = sizeof(clientAddr);
 		TCPSOCK clientSock = -1;
 		#ifdef _WIN32 //win32
 			int clientAddrLen = sizeof(clientAddr);
@@ -296,7 +303,7 @@ namespace TCP {
 			socklen_t newScokIp;
 			clientSock=accept(ServerSocket,(struct sockaddr *)&clientAddr,&newScokIp);
 		#endif
-		if (clientSock == INVALID_SOCKET) {
+		if (clientSock == INVALID_SOCK) {
 			#ifdef _WIN32 //win32
 				SetErrorMsg("接收客户端连接失败", WSAGetLastError());
 			#elif __linux__ //linux
