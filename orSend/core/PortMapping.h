@@ -3,13 +3,13 @@
 #define PORTMAPPING_H_H
 #include"TcpSocketClass.h"
 namespace TCP {
-	enum ServerStrategy
+	enum class ServerStrategy : int
 	{
 		SINGLE=1,
 		DELAY=2,
 		CNUM=3
 	};
-	enum ForwardType
+	enum class ForwardType : int
 	{
 		STOC = 1,
 		CTOS = 2
@@ -72,7 +72,7 @@ namespace TCP {
 		/*获取一个服务器信息进行转发,默认低延迟*/
 		ServerBasicInfo* GetServerBasicInfo(ServerStrategy type); 
 		/*核心转发函数*/
-		void forwardData(SOCKET from_sock, SOCKET to_sock, ForwardType forwardType);
+		void forwardData(TCPSOCK from_sock, TCPSOCK to_sock, ForwardType forwardType);
 		//映射函数
 		//socket连接等处理函数、
 		void OnServerConn(TCPSOCK sock) override;

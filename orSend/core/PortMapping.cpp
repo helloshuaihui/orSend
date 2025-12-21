@@ -156,29 +156,31 @@ namespace TCP {
 		}
 		return nullptr;
 	}
-	void PortMapping::forwardData(SOCKET from_sock, SOCKET to_sock, ForwardType forwardType)
+	void PortMapping::forwardData(TCPSOCK fromSock, TCPSOCK toSock, TCP::ForwardType forwardType)
 	{
 		char buffer[TCPMAXBUFSIZE]; // 数据缓冲区
 		while (true) {
 			// 从from_sock接收数据
-			int recv_len = recv(from_sock, buffer, sizeof(buffer), 0);
+			int recv_len = recv(fromSock, buffer, sizeof(buffer), 0);
 			if (recv_len <= 0) {
 				break;
 			}
 			// 转发到to_sock
-			int send_len = send(to_sock, buffer, recv_len, 0);
+			int send_len = send(toSock, buffer, recv_len, 0);
 			if (send_len <= 0) {
 				break;
 			}
 		}
 		// 关闭套接字
-		if (ForwardType::CTOS) {
+		if (forwardType == ForwardType::CTOS) {
 			//重新创建转发
-
+			closesocket(fromSock);
+			closesocket(toSock);
 		}
 		else {
-			closesocket(from_sock);
-			closesocket(to_sock);
+
+			closesocket(fromSock);
+			closesocket(toSock);
 		}
 	}
 	void PortMapping::OnServerConn(TCPSOCK sock)
@@ -192,12 +194,15 @@ namespace TCP {
 		TCPSOCK ssock = connTcpScokerServer(serverBasicInfo->ip, serverBasicInfo->port);
 		if (ssock != -1) {
 			SockBingPool.push_back(InitSockBingInfo(sock, ssock)); //绑定并添加信息
-			//同时开启消息监听
-			std::thread th([this, ssock]()->void {
-				StartClient(ssock);
-				});
-			th.detach();
-			//send(ssock, buf.c_str(), buf.size(), 0); //转发消息
+			std::thread t1([this,sock,ssock]()-> void{
+				forwardData(sock,ssock,ForwardType::CTOS);
+			});
+			// 线程2：目标服务器 → 客户端
+			std::thread t2([this, sock, ssock]()-> void {
+				forwardData(ssock, sock, ForwardType::STOC);
+			});
+			t1.detach();
+			t2.detach();
 		}
 		else {
 			//如果为-1也打印错误信息

@@ -144,7 +144,7 @@ namespace TCP {
 	TcpSocketInfo TcpSocketClass::InitTCPSOCKINFO(std::string ip, int port, TCPSOCK sock,int type)
 	{
 		TcpSocketInfo info;
-		info.ip = std::move(ip);  // 使用move减少拷贝
+		info.ip = ip;  // 使用move减少拷贝
 		info.port = port; //端口
 		info.sockId = sock;  // 复用之前定义的无效句柄
 		info.connTime = getCurrentTimeString(); //获取当前系统时间
