@@ -20,7 +20,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(Threads REQUIRED)
 endif()
 # 将源代码添加到此项目的可执行文件。
-add_executable (orSend "orSend.cpp" "orSend.h" "core/TcpSocketClass.h" "core/TcpSocketClass.cpp" "core/PortMapping.h" "core/PortMapping.cpp")
+add_executable (orSend "orSend.cpp" "orSend.h" "core/TcpSocketClass.h" "core/TcpSocketClass.cpp" "core/PortForward.h" "core/PortForward.cpp" "core/PortMapping.h" "core/PortMapping.cpp")
 
 
 
