@@ -6,6 +6,12 @@ namespace TCP {
 	}
 	PortForward::~PortForward()
 	{
+		threadPool.Shutdown();
+	}
+
+	ThreadPool& PortForward::GetThreadPool()
+	{
+		return threadPool;
 	}
 	bool PortForward::AddServerBasicInfoPool(const std::string& ip, int port)
 	{
@@ -33,14 +39,18 @@ namespace TCP {
 
 		for (int i = 0;i < LocalBasicInfoPool.size();i++) {
 			LocalPortBasicInfo a = LocalBasicInfoPool.at(i);
-			std::thread  th([this, a]() -> void {
-				//开始监听
-				TCPSOCK sock = creatTcpScoketserver(a.ip, a.port);
-				if (sock != -1) {
-					StartServer(sock);
-				}
+			try {
+				threadPool.AddTask([this, a]() -> void {
+					//开始监听
+					TCPSOCK sock = creatTcpScoketserver(a.ip, a.port);
+					if (sock != -1) {
+						StartServer(sock);
+					}
 				});
-			th.detach();
+			}
+			catch (const std::exception& e) {
+				std::cout << "添加监听任务失败: " << e.what() << std::endl;
+			}
 		}
 		return false;
 	}
@@ -196,15 +206,18 @@ namespace TCP {
 		TCPSOCK ssock = connTcpScokerServer(serverBasicInfo->ip, serverBasicInfo->port);
 		if (ssock != -1) {
 			SockBingPool.push_back(InitSockBingInfo(sock, ssock)); //绑定并添加信息
-			std::thread t1([this, sock, ssock]()-> void {
-				forwardData(sock, ssock, ForwardType::CTOS);
+			try {
+				threadPool.AddTask([this, sock, ssock]()-> void {
+					forwardData(sock, ssock, ForwardType::CTOS);
 				});
-			// 线程2：目标服务器 → 客户端
-			std::thread t2([this, sock, ssock]()-> void {
-				forwardData(ssock, sock, ForwardType::STOC);
+				// 线程2：目标服务器 → 客户端
+				threadPool.AddTask([this, sock, ssock]()-> void {
+					forwardData(ssock, sock, ForwardType::STOC);
 				});
-			t1.detach();
-			t2.detach();
+			}
+			catch (const std::exception& e) {
+				std::cout << "添加转发任务失败: " << e.what() << std::endl;
+			}
 		}
 		else {
 			//如果为-1也打印错误信息
@@ -228,10 +241,14 @@ namespace TCP {
 			if (ssock != -1) {
 				SockBingPool.push_back(InitSockBingInfo(sock, ssock)); //绑定并添加信息
 				//同时开启消息监听
-				std::thread th([this, ssock]()->void {
-					StartClient(ssock);
+				try {
+					threadPool.AddTask([this, ssock]()->void {
+						StartClient(ssock);
 					});
-				th.detach();
+				}
+				catch (const std::exception& e) {
+					std::cout << "添加客户端监听任务失败: " << e.what() << std::endl;
+				}
 				send(ssock, buf.c_str(), buf.size(), 0); //转发消息
 			}
 			else {

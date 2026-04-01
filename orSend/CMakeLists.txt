@@ -1,4 +1,4 @@
-﻿# CMakeList.txt: orSend 的 CMake 项目，在此处包括源代码并定义
+# CMakeList.txt: orSend 的 CMake 项目，在此处包括源代码并定义
 # 项目特定的逻辑。
 #
 cmake_minimum_required (VERSION 3.8)
@@ -20,7 +20,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(Threads REQUIRED)
 endif()
 # 将源代码添加到此项目的可执行文件。
-add_executable (orSend "orSend.cpp" "orSend.h" "core/TcpSocketClass.h" "core/TcpSocketClass.cpp" "core/PortForward.h" "core/PortForward.cpp" "core/PortMapping.h" "core/PortMapping.cpp")
+add_executable (orSend "orSend.cpp" "orSend.h" "core/TcpSocketClass.h" "core/TcpSocketClass.cpp" "core/PortForward.h" "core/PortForward.cpp" "core/PortMapping.h" "core/PortMapping.cpp" "core/ThreadPool.h" "core/ThreadPool.cpp")
 
 
 

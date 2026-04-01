@@ -10,10 +10,10 @@ int main()
 		SetConsoleOutputCP(65001);  // 设置输出代码页
 		SetConsoleCP(65001);        // 设置输入代码页
 	#endif
-	TCP::PortMapping test;
+	TCP::PortForward test;
 	test.AddServerBasicInfoPool((std::string)"127.0.0.1",80);
 	test.AddLocalBasicInfoPool((std::string)"0.0.0.0", 8000);
-	test.StratPortMapping();
+	test.StratPortForward();
 	#ifdef _WIN32
 		Sleep(1000000);
 	#elif __linux__

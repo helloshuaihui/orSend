@@ -50,6 +50,11 @@ namespace TCP {
 	public:
 		TCPSOCK creatTcpScoketserver(std::string ip,int port);
 		TCPSOCK connTcpScokerServer(std::string ip, int port);
+		//TCP_NODELAY控制
+		bool EnableTcpNoDelay(TCPSOCK sock);
+		bool DisableTcpNoDelay(TCPSOCK sock);
+		//设置全局TCP_NODELAY默认状态
+		void SetDefaultTcpNoDelay(bool enable);
 		//错误处理
 		/*错误信息*/
 		std::string ErrorMsg;
@@ -64,6 +69,8 @@ namespace TCP {
 		int MaxListenNum;
 		/*是否监听客户端消息事件 默认false*/
 		bool isListenMsgEvents;
+		/*TCP_NODELAY默认状态，默认false*/
+		bool defaultTcpNoDelay;
 		/*客户端连接回调函数*/
 		virtual void OnServerConn(TCPSOCK sock);
 		/*服务端 接收消息回调函数*/
@@ -110,7 +117,7 @@ namespace TCP {
 		/*获取soket基础信息*/
 		TcpSocketInfo* GetSockInfo(TCPSOCK sock);
 		#ifdef WIN32
-				bool InitWinSocket();
+			bool InitWinSocket();
 		#endif // !WIN32
 	};
 }

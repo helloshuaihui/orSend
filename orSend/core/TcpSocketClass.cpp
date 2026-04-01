@@ -50,6 +50,9 @@ namespace TCP {
 				return -1;
 			}
 			else {
+				if (defaultTcpNoDelay) {
+					EnableTcpNoDelay(NewSocket);
+				}
 				SocketPool.push_back(InitTCPSOCKINFO(ip, port, NewSocket, SocketType::server));
 			}
 		}
@@ -89,6 +92,9 @@ namespace TCP {
 				return -1;
 			}
 			else {
+				if (defaultTcpNoDelay) {
+					EnableTcpNoDelay(NewSocket);
+				}
 				//获取端口
 				int LocalPort = -1;
 				sockaddr_in localAddr{};
@@ -131,12 +137,48 @@ namespace TCP {
 		std::cout << "来自 " << sock << "的连接断开" << std::endl;
 		PrintSocketPool();
 	}
+	bool TcpSocketClass::EnableTcpNoDelay(TCPSOCK sock)
+	{
+		int flag = 1;
+		int result = setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&flag, sizeof(flag));
+		if (result == SOCK_ERROR) {
+			#ifdef _WIN32
+				SetErrorMsg("启用 TCP_NODELAY 失败", WSAGetLastError());
+			#elif __linux__
+				SetErrorMsg("启用 TCP_NODELAY 失败", SOCK_ERROR);
+			#endif
+			return false;
+		}
+		return true;
+	}
+
+	bool TcpSocketClass::DisableTcpNoDelay(TCPSOCK sock)
+	{
+		int flag = 0;
+		int result = setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&flag, sizeof(flag));
+		if (result == SOCK_ERROR) {
+			#ifdef _WIN32
+				SetErrorMsg("禁用 TCP_NODELAY 失败", WSAGetLastError());
+			#elif __linux__
+				SetErrorMsg("禁用 TCP_NODELAY 失败", SOCK_ERROR);
+			#endif
+			return false;
+		}
+		return true;
+	}
+
+	void TcpSocketClass::SetDefaultTcpNoDelay(bool enable)
+	{
+		defaultTcpNoDelay = enable;
+	}
+
 	TcpSocketClass::TcpSocketClass():
 		ErrorMsg(""),
 		ErrorCode(0),
 		IsPrintError(true),
 		MaxListenNum(64),
-		isListenMsgEvents(false)
+		isListenMsgEvents(false),
+		defaultTcpNoDelay(true)
 	{
 		#ifdef WIN32
 			InitWinSocket();
@@ -310,6 +352,9 @@ namespace TCP {
 				SetErrorMsg("接收客户端连接失败", SOCK_ERROR);
 			#endif
 			return false;
+		}
+		if (defaultTcpNoDelay) {
+			EnableTcpNoDelay(clientSock);
 		}
 		char clientIp[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientAddr.sin_addr, clientIp, INET_ADDRSTRLEN);

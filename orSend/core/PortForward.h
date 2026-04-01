@@ -2,6 +2,7 @@
 #ifndef PORTFORWARD_H
 #define PORTFORWARD_H
 #include"TcpSocketClass.h"
+#include"ThreadPool.h"
 #ifdef __linux__
 	#include <thread>
 #endif // __linux__
@@ -50,7 +51,10 @@ namespace TCP {
 		bool AddLocalBasicInfoPool(const std::string& ip, int port);
 		/*开始监听本地以及服务器端口进行转发*/
 		bool StratPortForward();
+		/*获取线程池引用，用于配置线程池*/
+		ThreadPool& GetThreadPool();
 	private:
+		ThreadPool threadPool; /*线程池*/
 		std::vector<TcpSocketInfo> LockSockPool;/*本地socket信息池*/
 		std::vector<TcpSocketInfo> ServeSockPool; /*服务器socket信息池*/
 		std::vector<ServerBasicInfo> ServerBasicInfoPool; /*服务器基本信息池*/
