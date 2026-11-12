@@ -1,0 +1,41 @@
+# ---- C++ 构建产物 ----
+build/
+out/
+cmake-build-*/
+*.obj
+*.o
+*.pdb
+*.ilk
+*.lib
+*.exp
+*.exe
+*.dll
+*.so
+*.a
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
+# ---- C# ----
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+.vs/
+*.sln.docstates
+
+# ---- 运行时 ----
+logs/
+App_Data/
+*.log
+config.local.json
+
+# ---- 编辑器 ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ---- 工作区工具数据 ----
+.workbuddy-ai/

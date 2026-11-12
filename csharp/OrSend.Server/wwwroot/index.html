@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>orSend · 服务端控制台</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">or<span>Send</span></div>
+    <div class="sub">服务端控制台</div>
+  </div>
+  <div class="topbar-right">
+    <span id="enginePill" class="pill pill-idle"><i></i>未运行</span>
+    <button id="btnToggle" class="btn btn-primary">启动服务端</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="overview">概览</button>
+  <button class="tab" data-tab="tunnels">隧道与客户端</button>
+  <button class="tab" data-tab="rules">转发 / 映射</button>
+  <button class="tab" data-tab="logs">日志</button>
+  <button class="tab" data-tab="settings">设置</button>
+</nav>
+
+<main>
+  <!-- 概览 -->
+  <section id="tab-overview" class="tab-panel active">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">在线客户端</div>
+        <div class="stat-value" id="statAgents">0</div>
+        <div class="stat-hint">agent 连接数</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">活跃隧道</div>
+        <div class="stat-value" id="statTunnels">0</div>
+        <div class="stat-hint">已注册的公网端口</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">活跃连接</div>
+        <div class="stat-value" id="statStreams">0</div>
+        <div class="stat-hint">正在转发的会话</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">累计流量</div>
+        <div class="stat-value" id="statTraffic">0 B</div>
+        <div class="stat-hint" id="statTrafficHint">上行 / 下行</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>服务端信息</h2>
+        <span class="muted" id="uptimeText">—</span>
+      </div>
+      <div class="kv-grid">
+        <div class="kv"><span>agent 接入地址</span><b id="infoBind">—</b></div>
+        <div class="kv"><span>公网监听地址</span><b id="infoPublic">—</b></div>
+        <div class="kv"><span>控制接口</span><b id="infoControl">—</b></div>
+        <div class="kv"><span>引擎版本</span><b id="infoVersion">—</b></div>
+      </div>
+      <div class="alert alert-warn" id="tokenWarn" hidden>
+        未设置访问 token，任何知道地址的客户端都能接入。建议在「设置」里配置一个强口令。
+      </div>
+      <div class="alert alert-error" id="engineError" hidden></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>隧道速览</h2>
+        <span class="muted">公网端口 → 内网服务</span>
+      </div>
+      <div class="mini-list" id="tunnelOverview"><div class="empty">暂无隧道</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>端口转发 / 映射概览</h2></div>
+      <div class="mini-list" id="ruleOverview"><div class="empty">暂无规则</div></div>
+    </div>
+  </section>
+
+  <!-- 隧道与客户端 -->
+  <section id="tab-tunnels" class="tab-panel">
+    <div class="card">
+      <div class="card-head">
+        <h2>在线客户端</h2>
+        <span class="muted">agent 主动连入，无需公网 IP</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>客户端</th><th>名称</th><th>来源</th><th>在线时长</th><th>连接数</th><th>流量</th><th>隧道</th><th></th></tr>
+          </thead>
+          <tbody id="agentRows"><tr><td colspan="8" class="empty">暂无客户端接入</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>隧道列表</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>隧道</th><th>客户端</th><th>公网地址</th><th>内网目标</th><th>活跃</th><th>累计连接</th><th>流量</th></tr>
+          </thead>
+          <tbody id="tunnelRows"><tr><td colspan="7" class="empty">暂无隧道</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 规则 -->
+  <section id="tab-rules" class="tab-panel">
+    <div class="card">
+      <div class="card-head">
+        <h2>端口转发</h2>
+        <span class="muted">一个本地监听端口直通一个固定目标</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>名称</th><th>监听</th><th>目标</th><th>活跃</th><th>累计</th><th>流量</th><th></th></tr></thead>
+          <tbody id="forwardRows"><tr><td colspan="7" class="empty">暂无转发规则</td></tr></tbody>
+        </table>
+      </div>
+      <form class="inline-form" id="forwardForm">
+        <input name="name" placeholder="名称（可空）" />
+        <input name="listen" placeholder="监听 0.0.0.0:8080" required />
+        <input name="target" placeholder="目标 127.0.0.1:80" required />
+        <button class="btn btn-primary" type="submit">添加</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>端口映射</h2>
+        <span class="muted">一个监听端口映射到多个目标，支持负载与健康检查</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>名称</th><th>监听</th><th>策略</th><th>目标</th><th>活跃</th><th>累计</th><th></th></tr></thead>
+          <tbody id="mappingRows"><tr><td colspan="7" class="empty">暂无映射规则</td></tr></tbody>
+        </table>
+      </div>
+      <form class="inline-form" id="mappingForm">
+        <input name="name" placeholder="名称（可空）" />
+        <input name="listen" placeholder="监听 0.0.0.0:9000" required />
+        <input name="targets" placeholder="目标 127.0.0.1:8081,127.0.0.1:8082" required />
+        <select name="strategy">
+          <option value="roundrobin">轮询</option>
+          <option value="leastconn">最少连接</option>
+          <option value="failover">主备</option>
+          <option value="random">随机</option>
+        </select>
+        <button class="btn btn-primary" type="submit">添加</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- 日志 -->
+  <section id="tab-logs" class="tab-panel">
+    <div class="card">
+      <div class="card-head">
+        <h2>运行日志</h2>
+        <div class="row-gap">
+          <label class="switch"><input type="checkbox" id="autoScroll" checked /><span>自动滚动</span></label>
+          <button class="btn btn-ghost" id="btnClearLogs">清空视图</button>
+        </div>
+      </div>
+      <div class="log-view" id="logView"></div>
+    </div>
+  </section>
+
+  <!-- 设置 -->
+  <section id="tab-settings" class="tab-panel">
+    <div class="card">
+      <div class="card-head"><h2>服务端设置</h2></div>
+      <form class="form-grid" id="settingsForm">
+        <label>
+          <span>agent 接入地址</span>
+          <input name="bind" placeholder="0.0.0.0:7000" />
+        </label>
+        <label>
+          <span>公网监听地址</span>
+          <input name="publicHost" placeholder="0.0.0.0" />
+        </label>
+        <label>
+          <span>访问 token</span>
+          <input name="token" placeholder="留空表示不校验" />
+        </label>
+        <label>
+          <span>控制接口端口</span>
+          <input name="controlPort" type="number" min="1" max="65535" />
+        </label>
+        <label>
+          <span>日志级别</span>
+          <select name="logLevel">
+            <option value="info">info</option>
+            <option value="debug">debug</option>
+            <option value="warn">warn</option>
+            <option value="error">error</option>
+          </select>
+        </label>
+        <label class="check">
+          <input type="checkbox" name="autoStart" />
+          <span>打开页面时自动启动引擎</span>
+        </label>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">保存并重启引擎</button>
+          <span class="muted" id="exePathText"></span>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>引擎输出</h2></div>
+      <pre class="engine-output" id="engineOutput">—</pre>
+    </div>
+  </section>
+</main>
+
+<div class="toast-wrap" id="toastWrap"></div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<Application x:Class="OrSend.ServerDesktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:common="clr-namespace:OrSend.Desktop.Common;assembly=OrSend.Desktop.Common"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/OrSend.Desktop.Common;component/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 服务端主色：蓝 -->
+            <SolidColorBrush x:Key="AccentBrush" Color="#2563EB" />
+            <SolidColorBrush x:Key="AccentWeakBrush" Color="#EFF4FF" />
+
+            <common:TabVisibilityConverter x:Key="TabVis" />
+            <common:BoolToVisibilityConverter x:Key="BoolVis" />
+            <common:InverseBoolConverter x:Key="Not" />
+            <common:DurationConverter x:Key="Dur" />
+            <common:BytesConverter x:Key="Bytes" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
